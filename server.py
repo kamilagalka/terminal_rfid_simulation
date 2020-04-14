@@ -8,12 +8,11 @@ client = mqtt.Client()
 
 window = tkinter.Tk()
 
-database_filename = "test2.db"
-
 
 def process_message(client, userdata, message):
     message_decoded = (str(message.payload.decode("utf-8"))).split(".")
-    if not message_decoded[0].__contains__("connected") and not message_decoded[0].__contains__("disconnected"):
+    print(message_decoded)
+    if not message_decoded[0] == "connected" and not message_decoded[0] == "disconnected":
         card_id = message_decoded[0]
         term_id = message_decoded[1]
 
@@ -22,17 +21,22 @@ def process_message(client, userdata, message):
             "%y")
         log_time = date_time_now.strftime("%X")
 
-        worker_id = db.find_owner_id(database_filename, card_id)
-        if worker_id == -1:
+        owner_id = db.find_card_owner_id(db.database_filename, card_id)
+        if owner_id == db.STOLEN_CARD_OWNER_ID:
             stolen_card_procedure()
 
-        db.add_log(database_filename, log_date, log_time, term_id, card_id, worker_id)
-        print("Card %s has been used on %s on %s, %s" % (card_id, term_id, log_date, log_time))
-        log_msg = "Card %s has been used on %s on %s, %s" % (card_id, term_id, log_date, log_time)
-        tkinter.Label(window, text=log_msg).grid()
+        card_possession_info = db.get_card_possession_info(db.database_filename, card_id)
+
+        db.add_log(db.database_filename, log_date, log_time, term_id, card_id, owner_id)
+
+        log_msg = "Card %shas been used on %son %s, %s. Card owner: %s" % (
+            card_id, term_id, log_date, log_time, card_possession_info)
+        tkinter.Label(window, text=log_msg).grid(sticky="W")
+
     else:
-        print(message_decoded[0])
-        tkinter.Label(window, text=message_decoded[0]).grid()
+        client_id = message_decoded[1]
+        client_status = message_decoded[0]
+        tkinter.Label(window, text="%s is %s" % (client_id, client_status)).grid()
 
 
 def stolen_card_procedure():
