@@ -1,9 +1,8 @@
 import tkinter
 import database_handling as db
+import reports_handling
 
 window = tkinter.Tk()
-
-database_filename = "test2.db"
 
 term_var = tkinter.StringVar()
 card_var = tkinter.StringVar()
@@ -12,13 +11,12 @@ worker_var = tkinter.StringVar()
 
 def open_data_window():
     data_window = tkinter.Tk()
-    data_window.geometry("400x500")
+    data_window.geometry("300x300")
 
-    terminals = db.get_data(database_filename, "terminals")
-    cards = db.get_data(database_filename, "cards")
-    workers = db.get_data(database_filename, "workers")
+    terminals = db.get_data(db.database_filename, "terminals")
+    cards = db.get_data(db.database_filename, "cards")
+    workers = db.get_data(db.database_filename, "workers")
 
-    # terminals radiobuttons
     tkinter.Label(data_window, text="Terminals: ", font=("Courier", 10), fg="blue").grid()
 
     for terminal in terminals:
@@ -34,7 +32,7 @@ def open_data_window():
         card_id = card[0]
         card_owner_id = card[1]
 
-        if card_owner_id == -1:
+        if card_owner_id == db.STOLEN_CARD_OWNER_ID:
             card_owner = "!!! STOLEN !!!"
         elif card_owner_id is None:
             card_owner = "..."
@@ -46,22 +44,20 @@ def open_data_window():
     data_window.mainloop()
 
 
-def create_csv(worker_id):
-    pass
-
-
 def create_main_window():
-    window.geometry("500x500")
+    window.geometry("600x600")
     window.title("System Handling")
 
-    terminals = db.get_data(database_filename, "terminals")
-    cards = db.get_data(database_filename, "cards")
-    workers = db.get_data(database_filename, "workers")
+    terminals = db.get_data(db.database_filename, "terminals")
+    cards = db.get_data(db.database_filename, "cards")
+    workers = db.get_data(db.database_filename, "workers")
 
     first_terminal_id = terminals[0][0]
     term_var.set(first_terminal_id)
+
     first_card_id = cards[0][0]
     card_var.set(first_card_id)
+
     first_worker_id = workers[0][0]
     worker_var.set(first_worker_id)
 
@@ -76,6 +72,7 @@ def create_main_window():
         tkinter.Radiobutton(window, text=terminal_id, variable=term_var,
                             value=terminal_id,
                             font=("Courier", 8)).grid()
+
     row = 1
     for card in cards:
         card_id = card[0]
@@ -93,28 +90,31 @@ def create_main_window():
                             value=worker_id,
                             font=("Courier", 8)).grid(row=row, column=2, sticky="W")
 
-    tkinter.Label(window, text="Print current info about system:", font=("Courier", 10), fg="green").grid(column=1)
-    tkinter.Button(window, text="Print data",
+    tkinter.Label(window, text="Open window with current info about system:", font=("Courier", 10), fg="green").grid(
+        rowspan=2, column=1)
+    tkinter.Button(window, text="Show current data",
                    command=lambda: open_data_window()).grid(column=1)
 
     tkinter.Label(window, text="Connect or disconnect terminal:", font=("Courier", 10), fg="green").grid(column=1)
     tkinter.Button(window, text="Connect chosen terminal to system",
-                   command=lambda: db.add_terminal_to_system(database_filename, term_var.get())).grid(column=1)
+                   command=lambda: db.connect_terminal_to_system(db.database_filename, term_var.get())).grid(column=1)
     tkinter.Button(window, text="Disconnect chosen terminal from system",
-                   command=lambda: db.remove_terminal_from_system(database_filename, term_var.get())).grid(column=1)
+                   command=lambda: db.disconnect_terminal_from_system(db.database_filename, term_var.get())).grid(
+        column=1)
 
     tkinter.Label(window, text="Manage card assignment:", font=("Courier", 10), fg="green").grid(
         column=1)
     tkinter.Button(window, text="Delete chosen card assignment",
-                   command=lambda: db.remove_card_assignment(database_filename, card_var.get())).grid(column=1)
+                   command=lambda: db.remove_card_assignment(db.database_filename, card_var.get())).grid(column=1)
     tkinter.Button(window, text="Assign chosen card to chosen worker",
-                   command=lambda: db.assign_card(database_filename, worker_var.get(), card_var.get())).grid(column=1)
+                   command=lambda: db.assign_card(db.database_filename, worker_var.get(), card_var.get())).grid(
+        column=1)
     tkinter.Button(window, text="Mark chosen card as stolen",
-                   command=lambda: db.mark_card_as_stolen(database_filename, card_var.get())).grid(column=1)
+                   command=lambda: db.mark_card_as_stolen(db.database_filename, card_var.get())).grid(column=1)
 
-    tkinter.Label(window, text="Create csv file for chosen worker", font=("Courier", 10), fg="green").grid(column=1)
+    tkinter.Label(window, text="Create work time csv file", font=("Courier", 10), fg="green").grid(column=1)
     tkinter.Button(window, text="Create csv for chosen worker",
-                   command=lambda: create_csv(worker_var.get())).grid(column=1)
+                   command=lambda: reports_handling.create_csv(worker_var.get())).grid(column=1)
 
 
 if __name__ == "__main__":
