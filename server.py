@@ -2,17 +2,16 @@ import paho.mqtt.client as mqtt
 import tkinter
 import database_handling as db
 import datetime
+import reports_handling
 
 broker = "localhost"
 client = mqtt.Client()
 
-window = tkinter.Tk()
-
 
 def process_message(client, userdata, message):
     message_decoded = (str(message.payload.decode("utf-8"))).split(".")
-    print(message_decoded)
-    if not message_decoded[0] == "connected" and not message_decoded[0] == "disconnected":
+
+    if not message_decoded[0] == "online" and not message_decoded[0] == "offline":
         card_id = message_decoded[0]
         term_id = message_decoded[1]
 
@@ -29,7 +28,7 @@ def process_message(client, userdata, message):
 
         db.add_log(db.database_filename, log_date, log_time, term_id, card_id, owner_id)
 
-        log_msg = "Card %shas been used on %son %s, %s. Card owner: %s" % (
+        log_msg = "Card %s has been used on %s on %s, %s. Card owner: %s" % (
             card_id, term_id, log_date, log_time, card_possession_info)
         tkinter.Label(window, text=log_msg).grid(sticky="W")
 
@@ -43,12 +42,51 @@ def stolen_card_procedure():
     tkinter.Label(window, text="A STOLEN CARD HAS BEEN USED!!!", fg="red").grid()
 
 
+def assign_card(worker_id, card_id):
+    db.assign_card(db.database_filename, worker_id, card_id)
+
+
+def remove_card_assignment(card_id):
+    db.remove_card_assignment(db.database_filename, card_id)
+
+
+def connect_terminal(terminal_id):
+    db.connect_terminal_to_system(db.database_filename, terminal_id)
+    subscribe_terminal(terminal_id)
+
+
+def mark_card_as_stolen(card_id):
+    db.mark_card_as_stolen(db.database_filename, card_id)
+
+
+def disconnect_terminal(terminal_id):
+    db.disconnect_terminal_from_system(db.database_filename, terminal_id)
+    unsubscribe_terminal(terminal_id)
+
+
+def subscribe_terminal(terminal_id):
+    client.subscribe("%s/log" % terminal_id)
+    client.subscribe("%s/status" % terminal_id)
+
+
+def unsubscribe_terminal(terminal_id):
+    client.unsubscribe("%s/log" % terminal_id)
+    client.unsubscribe("%s/status" % terminal_id)
+
+
+def subscribe_connected_terminals():
+    for terminal_data in terminals_data:
+        terminal_id = terminal_data[0]
+        is_term_connected_to_system = terminal_data[1]
+        if is_term_connected_to_system:
+            subscribe_terminal(terminal_id)
+
+
 def connect_to_broker():
     client.connect(broker)
     client.on_message = process_message
     client.loop_start()
-    client.subscribe("terminal/log")
-    client.subscribe("client/status")
+    subscribe_connected_terminals()
 
 
 def disconnect_from_broker():
@@ -64,6 +102,9 @@ def create_main_window():
 
 
 if __name__ == "__main__":
+    terminals_data = db.get_data(db.database_filename, "terminals")
+
+    window = tkinter.Tk()
     connect_to_broker()
     create_main_window()
     window.mainloop()

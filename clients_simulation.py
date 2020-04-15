@@ -9,13 +9,54 @@ broker = "localhost"
 
 window = tkinter.Tk()
 
-term_var = tkinter.StringVar()
-card_var = tkinter.StringVar()
+chosen_terminal_id = tkinter.StringVar()
+chosen_card_id = tkinter.StringVar()
 
 terminals = db.get_data(db.database_filename, "terminals")
 cards = db.get_data(db.database_filename, "cards")
 
 clients = []
+
+
+def create_main_window():
+    window.geometry("400x500")
+    window.title("Clients")
+
+    first_terminal_id = terminals[0][0]
+    chosen_terminal_id.set(first_terminal_id)
+    first_card_id = cards[0][0]
+    chosen_card_id.set(first_card_id)
+
+    # labels with instruction
+    tkinter.Label(window, text="Choose used terminal and card", font=("Courier", 12), fg="green").grid()
+    tkinter.Label(window, text="then press 'space' to simulate card use", font=("Courier", 12), fg="green").grid()
+
+    # terminals radiobuttons
+    tkinter.Label(window, text="Terminals: ", font=("Courier", 15)).grid()
+
+    for terminal in terminals:
+        is_term_connected_to_system = terminal[1]
+        if is_term_connected_to_system == 1:
+            terminal_id = terminal[0]
+            tkinter.Radiobutton(window, text=terminal_id, variable=chosen_terminal_id, value=terminal_id,
+                                font=("Courier", 10)).grid()
+
+    # cards radiobuttons
+    tkinter.Label(window, text="Cards: ", font=("Courier", 15)).grid()
+
+    for card in cards:
+        card_id = card[0]
+        tkinter.Radiobutton(window, text=card_id, variable=chosen_card_id, value=card_id, font=("Courier", 10)).grid()
+    tkinter.Radiobutton(window, text="Unknown card", variable=chosen_card_id, value="unknown",
+                        font=("Courier", 10)).grid()
+
+    # exit instruction label
+    tkinter.Label(window, text="Press 'esc' to exit", font=("Courier", 12), fg="red").grid()
+
+    def disable_event():
+        pass
+
+    window.protocol("WM_DELETE_WINDOW", disable_event)
 
 
 def create_clients():
@@ -24,6 +65,12 @@ def create_clients():
         if is_term_connected_to_system:
             term_id = term[0]
             clients.append(mqtt.Client(term_id))
+
+
+def get_client(term_id):
+    for client in clients:
+        if client.client_id.__str__() == "b'%s'" % term_id:
+            return client
 
 
 def generate_random_card_id():
@@ -38,7 +85,7 @@ def generate_random_card_id():
 
 
 def read_card_id():
-    card_id = card_var.get()
+    card_id = chosen_card_id.get()
 
     if card_id == "unknown":
         card_id = generate_random_card_id()
@@ -47,53 +94,7 @@ def read_card_id():
 
 
 def read_terminal_id():
-    return term_var.get()
-
-
-def get_client(term_id):
-    for client in clients:
-        if client.client_id.__str__() == "b'%s'" % term_id:
-            return client
-
-
-def create_main_window():
-    window.geometry("400x500")
-    window.title("Clients")
-
-    first_terminal_id = terminals[0][0]
-    term_var.set(first_terminal_id)
-    first_card_id = cards[0][0]
-    card_var.set(first_card_id)
-
-    # labels with instruction
-    tkinter.Label(window, text="Choose used terminal and card", font=("Courier", 12), fg="green").grid()
-    tkinter.Label(window, text="then press 'space' to simulate card use", font=("Courier", 12), fg="green").grid()
-
-    # terminals radiobuttons
-    tkinter.Label(window, text="Terminals: ", font=("Courier", 15)).grid()
-
-    for terminal in terminals:
-        is_term_connected_to_system = terminal[1]
-        if is_term_connected_to_system == 1:
-            terminal_id = terminal[0]
-            tkinter.Radiobutton(window, text=terminal_id, variable=term_var, value=terminal_id,
-                                font=("Courier", 10)).grid()
-
-    # cards radiobuttons
-    tkinter.Label(window, text="Cards: ", font=("Courier", 15)).grid()
-
-    for card in cards:
-        card_id = card[0]
-        tkinter.Radiobutton(window, text=card_id, variable=card_var, value=card_id, font=("Courier", 10)).grid()
-    tkinter.Radiobutton(window, text="Unknown card", variable=card_var, value="unknown", font=("Courier", 10)).grid()
-
-    # exit instruction label
-    tkinter.Label(window, text="Press 'esc' to exit", font=("Courier", 12), fg="red").grid()
-
-    def disable_event():
-        pass
-
-    window.protocol("WM_DELETE_WINDOW", disable_event)
+    return chosen_terminal_id.get()
 
 
 def run():
@@ -111,18 +112,20 @@ def manage_new_log():
     term_id = read_terminal_id()
     client = get_client(term_id)
     if client is not None:
-        client.publish("terminal/log", card_id + "." + term_id, )
+        client.publish("%s/log" % term_id, card_id + "." + term_id, )
 
 
 def connect_to_broker():
     for client in clients:
         client.connect(broker)
-        client.publish("client/status", "connected.%s" % client.client_id)
+        terminal_id = (client.client_id.__str__()).split("'")[1]
+        client.publish("%s/status" % terminal_id, "online.%s" % terminal_id)
 
 
 def disconnect_from_broker():
     for client in clients:
-        client.publish("client/status", "disconnected.%s" % client.client_id)
+        terminal_id = (client.client_id.__str__()).split("'")[1]
+        client.publish("%s/status" % terminal_id, "offline.%s" % terminal_id)
         client.disconnect()
 
 
