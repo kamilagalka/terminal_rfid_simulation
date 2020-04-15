@@ -3,22 +3,18 @@ import database_handling as db
 import csv
 
 
+def get_datetime_object_from_strings(date_string, time_string):
+    date_table = date_string.split(".")
+    time_table = time_string.split(":")
+    return datetime.datetime(year=int(date_table[2]), month=int(date_table[1]), day=int(date_table[0]),
+                             hour=int(time_table[0]), minute=int(time_table[1]), second=int(time_table[2]))
+
+
 def calc_work_time(entry_date, entry_time, exit_date, exit_time):
-    entry_date_table = entry_date.split(".")
-    entry_time_table = entry_time.split(":")
+    entry_datetime = get_datetime_object_from_strings(entry_date, entry_time)
+    exit_datetime = get_datetime_object_from_strings(exit_date, exit_time)
 
-    entry_datetime = datetime.datetime(int(entry_date_table[2]), int(entry_date_table[1]), int(entry_date_table[0]),
-                                       int(entry_time_table[0]), int(entry_time_table[1]),
-                                       int(entry_time_table[2]))
-
-    exit_date_table = exit_date.split(".")
-    exit_time_table = exit_time.split(":")
-
-    exit_datetime = datetime.datetime(int(exit_date_table[2]), int(exit_date_table[1]), int(exit_date_table[0]),
-                                      int(exit_time_table[0]), int(exit_time_table[1]),
-                                      int(exit_time_table[2]))
     work_time = exit_datetime - entry_datetime
-
     return work_time
 
 
@@ -30,8 +26,9 @@ def create_csv(worker_id):
     with open(filename, 'w', newline='') as file:
         writer = csv.writer(file)
 
-        writer.writerow(["Entry date", "Entry time", "Entry card", "Entry terminal", "Exit date", "Exit time", "Exit card",
-                         "Exit terminal", "Work time"])
+        writer.writerow(
+            ["Entry date", "Entry time", "Entry card", "Entry terminal", "Exit date", "Exit time", "Exit card",
+             "Exit terminal", "Work time"])
 
         worker_logs = db.get_worker_logs(db.database_filename, worker_id)
 
