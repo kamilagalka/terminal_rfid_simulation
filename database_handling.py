@@ -171,7 +171,7 @@ def get_card_possession_info(db_name, card_id):
     elif worker_id == -1:
         return "THIS CARD HAS BEEN STOLEN"
     else:
-        return get_worker_last_name(db_name, worker_id) + get_worker_first_name(db_name, worker_id)
+        return get_worker_last_name(db_name, worker_id) + " " + get_worker_first_name(db_name, worker_id)
 
 
 def get_data(db_name, table_name):
