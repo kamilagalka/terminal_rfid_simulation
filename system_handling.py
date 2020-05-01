@@ -6,7 +6,11 @@ import server
 window = tkinter.Tk()
 
 list_of_terminals = tkinter.Listbox(window, exportselection=0)
+<<<<<<< HEAD
 list_of_cards = tkinter.Listbox(window, width=50, exportselection=0)
+=======
+list_of_cards = tkinter.Listbox(window, width=40, exportselection=0)
+>>>>>>> experimental
 list_of_workers = tkinter.Listbox(window, exportselection=0)
 
 
