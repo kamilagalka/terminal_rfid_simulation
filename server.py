@@ -3,7 +3,8 @@ import tkinter
 import database_handling as db
 import datetime
 
-broker = "localhost"
+broker = "LAPTOP-KQDKQ66Q"
+port = 8883
 client = mqtt.Client()
 
 
@@ -71,7 +72,9 @@ def subscribe_connected_terminals():
 
 
 def connect_to_broker():
-    client.connect(broker)
+    client.tls_set("ca.crt")
+    client.username_pw_set(username='server', password='password')
+    client.connect(broker, port)
     client.on_message = process_message
     client.loop_start()
     subscribe_connected_terminals()

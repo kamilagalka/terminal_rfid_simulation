@@ -5,8 +5,8 @@ import keyboard
 import time
 import random
 
-broker = "localhost"
-
+broker = "LAPTOP-KQDKQ66Q"
+port = 8883
 window = tkinter.Tk()
 
 chosen_terminal_id = tkinter.StringVar()
@@ -91,11 +91,14 @@ def manage_new_log():
     client = get_client(terminal_id)
     if client is not None:
         client.publish("%s/log" % terminal_id, card_id + "." + terminal_id, )
+        print("%s/log" % terminal_id, card_id + "." + terminal_id,)
 
 
 def connect_to_broker():
     for client in clients:
-        client.connect(broker)
+        client.tls_set("ca.crt")
+        client.username_pw_set(username='client', password='password')
+        client.connect(broker, port)
         terminal_id = (client.client_id.__str__()).split("'")[1]
         client.publish("%s/status" % terminal_id, "online.%s" % terminal_id)
 
