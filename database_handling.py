@@ -95,8 +95,9 @@ def get_worker_logs(db_name, worker_id):
     worker_logs = []
     for log in logs:
         log_worker_id = log[3]
-        if int(log_worker_id) == int(worker_id):
-            worker_logs.append(log)
+        if log_worker_id != 'None':
+            if int(log_worker_id) == int(worker_id):
+                worker_logs.append(log)
     return worker_logs
 
 
@@ -216,6 +217,18 @@ def get_data(db_name, table_name):
     items = cursor.fetchall()
     connection.close()
     return items
+
+
+def get_terminals(db_name):
+    return get_data(db_name, "terminals")
+
+
+def get_cards(db_name):
+    return get_data(db_name, "cards")
+
+
+def get_workers(db_name):
+    return get_data(db_name, "workers")
 
 
 def print_data(db_name, table_name):
