@@ -5,6 +5,7 @@ import datetime
 
 broker = "LAPTOP-KQDKQ66Q"
 port = 8883
+
 client = mqtt.Client()
 
 
@@ -93,7 +94,7 @@ def create_main_window():
 
 
 if __name__ == "__main__":
-    terminals_data = db.get_data(db.database_filename, "terminals")
+    terminals_data = db.get_terminals(db.database_filename)
     window = tkinter.Tk()
 
     connect_to_broker()
