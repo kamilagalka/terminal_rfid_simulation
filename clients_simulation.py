@@ -12,8 +12,8 @@ window = tkinter.Tk()
 chosen_terminal_id = tkinter.StringVar()
 chosen_card_id = tkinter.StringVar()
 
-terminals = db.get_data(db.database_filename, "terminals")
-cards = db.get_data(db.database_filename, "cards")
+terminals_data = db.get_data(db.database_filename, "terminals")
+cards_data = db.get_data(db.database_filename, "cards")
 
 clients = []
 
@@ -22,9 +22,10 @@ def create_main_window():
     window.geometry("400x500")
     window.title("Clients")
 
-    first_terminal_id = terminals[0][0]
+    first_terminal_id = terminals_data[0][0]
     chosen_terminal_id.set(first_terminal_id)
-    first_card_id = cards[0][0]
+
+    first_card_id = cards_data[0][0]
     chosen_card_id.set(first_card_id)
 
     # labels with instruction
@@ -34,19 +35,21 @@ def create_main_window():
     # terminals radiobuttons
     tkinter.Label(window, text="Terminals: ", font=("Courier", 15)).grid()
 
-    for terminal in terminals:
-        is_term_connected_to_system = terminal[1]
-        if is_term_connected_to_system == 1:
-            terminal_id = terminal[0]
-            tkinter.Radiobutton(window, text=terminal_id, variable=chosen_terminal_id, value=terminal_id,
-                                font=("Courier", 10)).grid()
+    for terminal_data in terminals_data:
+        # is_term_connected_to_system = terminal_data[1]
+        # if is_term_connected_to_system:
+        terminal_id = terminal_data[0]
+        tkinter.Radiobutton(window, text=terminal_id, variable=chosen_terminal_id, value=terminal_id,
+                            font=("Courier", 10)).grid()
 
     # cards radiobuttons
     tkinter.Label(window, text="Cards: ", font=("Courier", 15)).grid()
 
-    for card in cards:
-        card_id = card[0]
-        tkinter.Radiobutton(window, text=card_id, variable=chosen_card_id, value=card_id, font=("Courier", 10)).grid()
+    for card_data in cards_data:
+        card_id = card_data[0]
+        card_owner_info = db.get_card_assignment_info(db.database_filename, card_id)
+        tkinter.Radiobutton(window, text=card_id + " - " + card_owner_info, variable=chosen_card_id, value=card_id,
+                            font=("Courier", 10)).grid()
     tkinter.Radiobutton(window, text="Unknown card", variable=chosen_card_id, value="unknown",
                         font=("Courier", 10)).grid()
 
@@ -60,11 +63,9 @@ def create_main_window():
 
 
 def create_clients():
-    for term in terminals:
-        is_term_connected_to_system = term[1]
-        if is_term_connected_to_system:
-            term_id = term[0]
-            clients.append(mqtt.Client(term_id))
+    for terminal_data in terminals_data:
+        term_id = terminal_data[0]
+        clients.append(mqtt.Client(term_id))
 
 
 def get_client(term_id):
@@ -73,46 +74,23 @@ def get_client(term_id):
             return client
 
 
-def generate_random_card_id():
-    card_id = "["
-    for i in range(5):
-        card_id += (random.randint(0, 999)).__str__()
-        if i != 4:
-            card_id += ", "
-
-    card_id += "]"
-    return card_id
+def read_used_card_id():
+    used_card_id = chosen_card_id.get()
+    if used_card_id == "unknown":
+        used_card_id = db.generate_random_card_id()
+    return used_card_id
 
 
-def read_card_id():
-    card_id = chosen_card_id.get()
-
-    if card_id == "unknown":
-        card_id = generate_random_card_id()
-
-    return card_id
-
-
-def read_terminal_id():
+def read_used_terminal_id():
     return chosen_terminal_id.get()
 
 
-def run():
-    while True:
-        window.update()
-        if keyboard.is_pressed('space'):
-            manage_new_log()
-            time.sleep(2)
-        if keyboard.is_pressed('esc'):
-            break
-
-
 def manage_new_log():
-    card_id = read_card_id()
-    term_id = read_terminal_id()
-    client = get_client(term_id)
+    card_id = read_used_card_id()
+    terminal_id = read_used_terminal_id()
+    client = get_client(terminal_id)
     if client is not None:
-        client.publish("%s/log" % term_id, card_id + "." + term_id, )
+        client.publish("%s/log" % terminal_id, card_id + "." + terminal_id, )
 
 
 def connect_to_broker():
@@ -127,6 +105,16 @@ def disconnect_from_broker():
         terminal_id = (client.client_id.__str__()).split("'")[1]
         client.publish("%s/status" % terminal_id, "offline.%s" % terminal_id)
         client.disconnect()
+
+
+def run():
+    while True:
+        window.update()
+        if keyboard.is_pressed('space'):
+            manage_new_log()
+            time.sleep(2)
+        if keyboard.is_pressed('esc'):
+            break
 
 
 if __name__ == "__main__":

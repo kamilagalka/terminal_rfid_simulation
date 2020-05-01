@@ -58,3 +58,4 @@ def create_csv(worker_id):
                      work_time])
 
                 is_entry = not is_entry
+    print("Report %s is ready" % filename)

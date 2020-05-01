@@ -1,7 +1,8 @@
+import random
 import sqlite3
 import os
 
-database_filename = "test2.db"
+database_filename = "system_database.db"
 STOLEN_CARD_OWNER_ID = -1
 
 
@@ -71,15 +72,22 @@ def add_worker(db_name, first_name, last_name):
 def get_worker_first_name(db_name, worker_id):
     workers = get_data(db_name, "workers")
     worker = workers[int(worker_id) - 1]
-    worker_name = worker[1]
-    return worker_name
+    worker_first_name = worker[1]
+    return worker_first_name
 
 
 def get_worker_last_name(db_name, worker_id):
     workers = get_data(db_name, "workers")
     worker = workers[int(worker_id) - 1]
-    worker_surname = worker[2]
-    return worker_surname
+    worker_last_name = worker[2]
+    return worker_last_name
+
+
+def get_worker_full_name(db_name, worker_id):
+    worker_last_name = get_worker_last_name(db_name, worker_id)
+    worker_first_name = get_worker_first_name(db_name, worker_id)
+    worker_full_name = worker_id.__str__() + " " + worker_last_name + " " + worker_first_name
+    return worker_full_name
 
 
 def get_worker_logs(db_name, worker_id):
@@ -123,6 +131,38 @@ def mark_card_as_stolen(db_name, card_id):
     assign_card(db_name, STOLEN_CARD_OWNER_ID, card_id)
 
 
+def generate_random_card_id():
+    card_id = "["
+    for i in range(5):
+        card_id += (random.randint(0, 999)).__str__()
+        if i != 4:
+            card_id += ", "
+
+    card_id += "]"
+    return card_id
+
+
+def find_card_owner_id(db_name, card_id):
+    cards = get_data(db_name, "cards")
+    for card in cards:
+        this_card_id = card[0]
+        owner_id = card[1]
+
+        if this_card_id == card_id:
+            return owner_id
+
+
+def get_card_assignment_info(db_name, card_id):
+    owner_id = find_card_owner_id(db_name, card_id)
+    if owner_id == STOLEN_CARD_OWNER_ID:
+        assignment_info = "--STOLEN--"
+    elif owner_id is None:
+        assignment_info = "--not-assgined--"
+    else:
+        assignment_info = get_worker_full_name(db_name, owner_id)
+    return assignment_info
+
+
 def add_terminal(db_name, terminal_id):
     instruction = "INSERT INTO terminals(terminal_id, is_connected_to_system) VALUES ('%s', '%s')" % (terminal_id, 0)
     modify_database(db_name, instruction)
@@ -149,29 +189,23 @@ def remove_terminal(db_name, terminal_id):
     modify_database(db_name, instruction)
 
 
+def get_terminal_status(db_name, terminal_id):
+    terminals = get_data(db_name, "terminals")
+
+    is_terminal_connected = "disconnected"
+
+    for terminal in terminals:
+        if terminal_id == terminal[0]:
+            is_terminal_connected = terminal[1]
+
+    terminal_status = "connected" if is_terminal_connected else "disconnected"
+    return terminal_status
+
+
 def add_log(db_name, date, time, terminal_id, card_id, worker_id):
     instruction = "INSERT INTO logs VALUES ('%s', '%s', '%s', '%s', '%s')" % (
         date, time, card_id, worker_id, terminal_id)
     modify_database(db_name, instruction)
-
-
-def find_card_owner_id(db_name, card_id):
-    cards = get_data(db_name, "cards")
-    for card in cards:
-        this_card_id = card[0]
-        owner_id = card[1]
-        if this_card_id == card_id:
-            return owner_id
-
-
-def get_card_possession_info(db_name, card_id):
-    worker_id = find_card_owner_id(db_name, card_id)
-    if worker_id is None:
-        return "unknown"
-    elif worker_id == -1:
-        return "THIS CARD HAS BEEN STOLEN"
-    else:
-        return get_worker_last_name(db_name, worker_id) + " " + get_worker_first_name(db_name, worker_id)
 
 
 def get_data(db_name, table_name):
@@ -213,6 +247,9 @@ def create_test_database(db_name):
     add_terminal(db_name, "T1")
     add_terminal(db_name, "T2")
 
+    connect_terminal_to_system(db_name, "T1")
+    connect_terminal_to_system(db_name, "T2")
+
     assign_card(db_name, 1, "[176, 111, 225, 37, 27]")
     assign_card(db_name, 2, "[217, 125, 80, 211, 39]")
     assign_card(db_name, 3, "[123, 41, 351, 52, 22]")
@@ -220,16 +257,22 @@ def create_test_database(db_name):
     mark_card_as_stolen(db_name, "[42, 241, 54, 122, 532]")
 
     add_log(db_name, "14.04.2020", "12:01:11", "T1", "[176, 111, 225, 37, 27]", 1)
-    add_log(db_name, "14.04.2020", "20:10:15", "T1", "[176, 111, 225, 37, 27]", 1)
-    add_log(db_name, "15.04.2020", "20:05:02", "T1", "[217, 125, 80, 211, 39]", 1)
+    add_log(db_name, "14.04.2020", "20:10:15", "T2", "[176, 111, 225, 37, 27]", 1)
+    add_log(db_name, "15.04.2020", "20:05:02", "T2", "[217, 125, 80, 211, 39]", 1)
     add_log(db_name, "16.04.2020", "04:01:11", "T1", "[217, 125, 80, 211, 39]", 1)
+    add_log(db_name, "17.04.2020", "08:01:21", "T1", "[217, 125, 80, 211, 39]", 1)
+    add_log(db_name, "17.04.2020", "16:11:09", "T2", "[217, 125, 80, 211, 39]", 1)
+    add_log(db_name, "18.04.2020", "08:00:42", "T1", "[217, 125, 80, 211, 39]", 1)
+    add_log(db_name, "18.04.2020", "16:02:01", "T1", "[217, 125, 80, 211, 39]", 1)
     add_log(db_name, "14.04.2020", "12:01:20", "T1", "[217, 125, 80, 211, 39]", 2)
-    add_log(db_name, "14.04.2020", "20:02:53", "T1", "[217, 125, 80, 211, 39]", 2)
+    add_log(db_name, "14.04.2020", "20:02:53", "T2", "[217, 125, 80, 211, 39]", 2)
+    add_log(db_name, "15.04.2020", "12:07:13", "T1", "[217, 125, 80, 211, 39]", 2)
+    add_log(db_name, "15.04.2020", "18:02:42", "T2", "[217, 125, 80, 211, 39]", 2)
+    add_log(db_name, "15.04.2020", "10:02:42", "T2", "[217, 125, 80, 211, 39]", 3)
+    add_log(db_name, "15.04.2020", "18:02:42", "T1", "[217, 125, 80, 211, 39]", 3)
+
+    print("Test database created")
 
 
 if __name__ == "__main__":
-    # creates database with empty system essential tables (workers, cards, terminals, logs)
-    # create_empty_system_database(database_filename)
-
-    # creates test database with 3 workers, 5 cards (with some assignments), 2 terminals and 10 logs
     create_test_database(database_filename)
