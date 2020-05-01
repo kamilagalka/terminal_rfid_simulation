@@ -13,7 +13,7 @@ Następnie należy uruchomić klientów - terminale. W niniejszej symulacji nale
 
 ## Raporty
 
-Raporty są generowane dla konkretnego pracownika do pliku csv i trafiają one do folderu reports. Przechowują one następujące informacje:
+Raporty są generowane dla konkretnego pracownika do pliku csv i trafiają one do folderu `reports`. Przechowują one następujące informacje:
 
 - *Entry date* – data wejścia pracownika do pracy
 - *Entry time* – godzina wejścia pracownika do pracy
