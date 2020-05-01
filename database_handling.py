@@ -24,6 +24,16 @@ def modify_database(db_name, instruction):
     connection.close()
 
 
+def check_if_table_exists(db_name, table_name):
+    connection = sqlite3.connect(db_name)
+    cursor = connection.cursor()
+    cursor.execute(''' SELECT count(name) FROM sqlite_master WHERE type='table' AND name='%s' ''' % table_name)
+    does_table_exist = cursor.fetchone()[0]
+    connection.close()
+
+    return does_table_exist
+
+
 def create_workers_table(db_name):
     instruction = """CREATE TABLE workers (
     worker_id INTEGER PRIMARY KEY,
@@ -210,9 +220,11 @@ def add_log(db_name, date, time, terminal_id, card_id, worker_id):
 
 
 def get_data(db_name, table_name):
+    does_table_exist = check_if_table_exists(db_name, table_name)
+    if not does_table_exist:
+        create_empty_system_database(db_name)
     connection = sqlite3.connect(db_name)
     cursor = connection.cursor()
-
     cursor.execute("SELECT * FROM %s" % table_name)
     items = cursor.fetchall()
     connection.close()
