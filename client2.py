@@ -14,7 +14,7 @@ client = mqtt.Client()
 
 window = tkinter.Tk()
 
-cards_data = db.get_data(db.database_filename, "cards")
+cards_data = db.get_cards(db.database_filename)
 list_of_cards = tkinter.Listbox(window, width=30, height=10)
 
 cards_last_use_time = []
