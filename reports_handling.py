@@ -20,8 +20,9 @@ def calc_work_time(entry_date, entry_time, exit_date, exit_time):
 
 def create_csv(worker_id):
     if worker_id != '':
-        worker_last_name = db.get_worker_last_name(db.database_filename, worker_id)
-        worker_first_name = db.get_worker_first_name(db.database_filename, worker_id)
+        worker_data = db.get_worker_full_name(db.database_filename, worker_id).split(" ")
+        worker_last_name = worker_data[1]
+        worker_first_name = worker_data[2]
         filename = ("reports/%s_%s_%s_report.csv" % (worker_id, worker_last_name, worker_first_name))
 
         with open(filename, 'w', newline='') as file:
@@ -55,7 +56,8 @@ def create_csv(worker_id):
                     work_time = (calc_work_time(entry_date, entry_time, exit_date, exit_time)).__str__()
 
                     writer.writerow(
-                        [entry_date, entry_time, entry_card, entry_terminal, exit_date, exit_time, exit_card, exit_terminal,
+                        [entry_date, entry_time, entry_card, entry_terminal, exit_date, exit_time, exit_card,
+                         exit_terminal,
                          work_time])
 
                     is_entry = not is_entry
