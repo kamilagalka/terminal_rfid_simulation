@@ -74,14 +74,22 @@ def manage_new_log():
 
         if is_card_available:
             client.publish("%s/log" % terminal_id, used_card_id + "." + terminal_id, )
-            print("%s/log" % terminal_id, used_card_id + "." + terminal_id, )
+            # print("%s/log" % terminal_id, used_card_id + "." + terminal_id, )
             cards_last_use_time.append((used_card_id, time.time()))
+
+
+def process_message(client, userdata, message):
+    message_decoded = (str(message.payload.decode("utf-8")))
+    print(message_decoded)
 
 
 def connect_to_broker():
     client.tls_set("ca.crt")
     client.username_pw_set(username='client', password='password')
     client.connect(broker, port)
+    client.on_message = process_message
+    client.loop_start()
+    client.subscribe("%s/log" % terminal_id)
     client.publish("%s/status" % terminal_id, "online.%s" % terminal_id)
 
 

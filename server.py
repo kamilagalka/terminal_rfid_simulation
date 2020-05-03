@@ -38,6 +38,8 @@ def process_new_log(used_card_id, used_terminal_id):
 
     tkinter.Label(window, text=log_msg).grid(sticky="W")
 
+    client.publish("%s/log" % used_terminal_id, "Server registered new log successfully", )
+
 
 def get_date_from_datetime(date_time):
     date = date_time.strftime("%d") + "." + date_time.strftime("%m") + "." + date_time.strftime(
