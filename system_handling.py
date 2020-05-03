@@ -59,9 +59,11 @@ def add_new_worker(new_worker_first_name, new_worker_last_name):
 
 def remove_worker(worker_id):
     if worker_id != '':
+        db.remove_worker_cards_ownership(db.database_filename, worker_id)
         db.remove_worker(db.database_filename, worker_id)
         fill_list_of_workers()
-        print("Removed worker %s" % worker_id)
+        fill_list_of_cards()
+        print("Removed worker %s. His cards are now unassigned." % worker_id)
 
 
 def assign_card(worker_id, card_id):
