@@ -79,24 +79,6 @@ def add_worker(db_name, first_name, last_name):
     modify_database(db_name, instruction)
 
 
-# def get_worker_first_name(db_name, worker_id):
-#     connection = sqlite3.connect(db_name)
-#     cursor = connection.cursor()
-#     cursor.execute(''' SELECT count(name) FROM sqlite_master WHERE type='table' AND name='%s' ''' % table_name)
-#     does_table_exist = cursor.fetchone()[0]
-#     connection.close()
-#
-#     return does_table_exist
-#     return worker_first_name
-#
-#
-# def get_worker_last_name(db_name, worker_id):
-#     workers = get_data(db_name, "workers")
-#     worker = workers[int(worker_id) - 1]
-#     worker_last_name = worker[2]
-#     return worker_last_name
-
-
 def get_worker_full_name(db_name, worker_id):
     connection = sqlite3.connect(db_name)
     cursor = connection.cursor()
