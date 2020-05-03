@@ -112,12 +112,17 @@ def get_worker_logs(db_name, worker_id):
 
 
 def remove_worker(db_name, worker_id):
-    instruction = "DELETE from workers where worker_id = %s" % worker_id
+    instruction = "DELETE from workers where worker_id = '%s'" % worker_id
     modify_database(db_name, instruction)
 
 
 def add_card(db_name, card_id):
     instruction = "INSERT INTO cards(card_id) VALUES ('%s')" % card_id
+    modify_database(db_name, instruction)
+
+
+def remove_card(db_name, card_id):
+    instruction = "DELETE from cards where card_id = '%s'" % card_id
     modify_database(db_name, instruction)
 
 
@@ -154,7 +159,7 @@ def generate_random_card_id():
 
 
 def find_card_owner_id(db_name, card_id):
-    cards = get_data(db_name, "cards")
+    cards = get_cards(db_name)
     for card in cards:
         this_card_id = card[0]
         owner_id = card[1]
@@ -172,6 +177,14 @@ def get_card_assignment_info(db_name, card_id):
     else:
         assignment_info = get_worker_full_name(db_name, owner_id)
     return assignment_info
+
+
+def check_if_card_exists(db_name, card_id):
+    cards = get_cards(db_name)
+    for card in cards:
+        if card_id == card[0]:
+            return True
+    return False
 
 
 def add_terminal(db_name, terminal_id):
@@ -196,12 +209,15 @@ def disconnect_terminal_from_system(db_name, terminal_id):
 
 
 def remove_terminal(db_name, terminal_id):
-    instruction = "DELETE from terminals where terminal_id = %s" % terminal_id
+    instruction = "DELETE from terminals where terminal_id = '%s'" % terminal_id
+    terminals = get_terminals(db_name)
+    print(terminals[1][0])
+    print(terminal_id)
     modify_database(db_name, instruction)
 
 
 def get_terminal_status(db_name, terminal_id):
-    terminals = get_data(db_name, "terminals")
+    terminals = get_terminals(db_name)
 
     is_terminal_connected = "disconnected"
 
@@ -211,6 +227,14 @@ def get_terminal_status(db_name, terminal_id):
 
     terminal_status = "connected" if is_terminal_connected else "disconnected"
     return terminal_status
+
+
+def check_if_terminal_exists(db_name, terminal_id):
+    terminals = get_terminals(db_name)
+    for terminal in terminals:
+        if terminal_id == terminal[0]:
+            return True
+    return False
 
 
 def add_log(db_name, date, time, terminal_id, card_id, worker_id):
