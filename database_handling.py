@@ -79,25 +79,54 @@ def add_worker(db_name, first_name, last_name):
     modify_database(db_name, instruction)
 
 
-def get_worker_first_name(db_name, worker_id):
-    workers = get_data(db_name, "workers")
-    worker = workers[int(worker_id) - 1]
-    worker_first_name = worker[1]
-    return worker_first_name
-
-
-def get_worker_last_name(db_name, worker_id):
-    workers = get_data(db_name, "workers")
-    worker = workers[int(worker_id) - 1]
-    worker_last_name = worker[2]
-    return worker_last_name
+# def get_worker_first_name(db_name, worker_id):
+#     connection = sqlite3.connect(db_name)
+#     cursor = connection.cursor()
+#     cursor.execute(''' SELECT count(name) FROM sqlite_master WHERE type='table' AND name='%s' ''' % table_name)
+#     does_table_exist = cursor.fetchone()[0]
+#     connection.close()
+#
+#     return does_table_exist
+#     return worker_first_name
+#
+#
+# def get_worker_last_name(db_name, worker_id):
+#     workers = get_data(db_name, "workers")
+#     worker = workers[int(worker_id) - 1]
+#     worker_last_name = worker[2]
+#     return worker_last_name
 
 
 def get_worker_full_name(db_name, worker_id):
-    worker_last_name = get_worker_last_name(db_name, worker_id)
-    worker_first_name = get_worker_first_name(db_name, worker_id)
+    connection = sqlite3.connect(db_name)
+    cursor = connection.cursor()
+    cursor.execute("SELECT first_name FROM workers WHERE worker_id='%s'" % worker_id)
+    worker_first_name = cursor.fetchone()[0]
+    cursor.execute("SELECT last_name FROM workers WHERE worker_id='%s'" % worker_id)
+    worker_last_name = cursor.fetchone()[0]
+    connection.close()
+
     worker_full_name = worker_id.__str__() + " " + worker_last_name + " " + worker_first_name
     return worker_full_name
+
+
+def get_worker_cards(db_name, worker_id):
+    worker_cards = []
+    cards = get_cards(db_name)
+    for card in cards:
+        owner_id = card[1]
+        if owner_id != 'None':
+            if owner_id == int(worker_id):
+                worker_cards.append(card)
+
+    return worker_cards
+
+
+def remove_worker_cards_ownership(db_name, worker_id):
+    worker_cards = get_worker_cards(db_name, worker_id)
+    for card in worker_cards:
+        card_id = card[0]
+        remove_card_assignment(db_name, card_id)
 
 
 def get_worker_logs(db_name, worker_id):
@@ -172,7 +201,7 @@ def get_card_assignment_info(db_name, card_id):
     owner_id = find_card_owner_id(db_name, card_id)
     if owner_id == STOLEN_CARD_OWNER_ID:
         assignment_info = "--STOLEN--"
-    elif owner_id is None:
+    elif owner_id == 'None' or owner_id is None:
         assignment_info = "--not-assgined--"
     else:
         assignment_info = get_worker_full_name(db_name, owner_id)
@@ -210,9 +239,6 @@ def disconnect_terminal_from_system(db_name, terminal_id):
 
 def remove_terminal(db_name, terminal_id):
     instruction = "DELETE from terminals where terminal_id = '%s'" % terminal_id
-    terminals = get_terminals(db_name)
-    print(terminals[1][0])
-    print(terminal_id)
     modify_database(db_name, instruction)
 
 
