@@ -5,32 +5,63 @@ import server
 
 window = tkinter.Tk()
 
-list_of_terminals = tkinter.Listbox(window, exportselection=0)
-<<<<<<< HEAD
-list_of_cards = tkinter.Listbox(window, width=50, exportselection=0)
-=======
-list_of_cards = tkinter.Listbox(window, width=40, exportselection=0)
->>>>>>> experimental
-list_of_workers = tkinter.Listbox(window, exportselection=0)
+list_of_terminals = tkinter.Listbox(window, height=7, exportselection=0)
+list_of_cards = tkinter.Listbox(window, height=7, width=40, exportselection=0)
+list_of_workers = tkinter.Listbox(window, height=7, exportselection=0)
 
 
 def add_new_terminal(new_terminal_id):
-    db.add_terminal(db.database_filename, new_terminal_id)
-    fill_list_of_terminals()
-    print("Added terminal %s" % new_terminal_id)
+    if new_terminal_id != '':
+        is_new_terminal_id_correct = True if new_terminal_id[0] == 'T' else False
+        if is_new_terminal_id_correct:
+            terminal_exists = db.check_if_terminal_exists(db.database_filename, new_terminal_id)
+            if not terminal_exists:
+                db.add_terminal(db.database_filename, new_terminal_id)
+                fill_list_of_terminals()
+                print("Added terminal %s" % new_terminal_id)
+            else:
+                print("Terminal already exists!")
+        else:
+            print("Incorrect terminal id!")
 
 
-def add_new_worker(new_worker_name, new_worker_surname):
-    db.add_worker(db.database_filename, new_worker_name, new_worker_surname)
-    fill_list_of_workers()
-    print("Added worker %s %s" % (new_worker_name, new_worker_surname))
+def remove_terminal(terminal_id):
+    if terminal_id != '':
+        db.remove_terminal(db.database_filename, terminal_id)
+        fill_list_of_terminals()
+        print("Removed terminal %s" % terminal_id)
 
 
 def add_new_card():
     new_card_id = db.generate_random_card_id()
-    db.add_card(db.database_filename, new_card_id)
-    fill_list_of_cards()
-    print("Added card %s" % new_card_id)
+    does_card_exist = db.check_if_card_exists(db.database_filename, new_card_id)
+    if not does_card_exist:
+        db.add_card(db.database_filename, new_card_id)
+        fill_list_of_cards()
+        print("Added card %s" % new_card_id)
+    else:
+        print("Card already exists!")
+
+
+def remove_card(card_id):
+    if card_id != '':
+        db.remove_card(db.database_filename, card_id)
+        fill_list_of_cards()
+        print("Removed card %s" % card_id)
+
+
+def add_new_worker(new_worker_first_name, new_worker_last_name):
+    if new_worker_first_name != '' and new_worker_last_name != '':
+        db.add_worker(db.database_filename, new_worker_first_name, new_worker_last_name)
+        fill_list_of_workers()
+        print("Added worker %s %s" % (new_worker_first_name, new_worker_last_name))
+
+
+def remove_worker(worker_id):
+    if worker_id != '':
+        db.remove_worker(db.database_filename, worker_id)
+        fill_list_of_workers()
+        print("Removed worker %s" % worker_id)
 
 
 def assign_card(worker_id, card_id):
@@ -139,6 +170,8 @@ def create_main_window():
     fill_list_of_cards()
     fill_list_of_workers()
 
+    # --------------------------------------------------------------------------------------------------------
+
     tkinter.Label(window, text="Add new terminal", font=("Courier", 8), fg="blue").grid(row=3, column=0)
     tkinter.Label(window, text="Insert terminal ID\nformat: T<number>", font=("Courier", 8)).grid(row=4,
                                                                                                   column=0)
@@ -164,6 +197,8 @@ def create_main_window():
     last_name_entry.grid(row=7, column=2)
     tkinter.Button(window, text="Add worker",
                    command=lambda: add_new_worker(first_name_entry.get(), last_name_entry.get())).grid(column=2, row=8)
+
+    # --------------------------------------------------------------------------------------------------------
 
     tkinter.Label(window, text="Connect or disconnect\nchosen terminal", font=("Courier", 10), fg="blue").grid(
         row=10, column=0)
@@ -194,6 +229,22 @@ def create_main_window():
                    command=lambda: reports_handling.create_csv(
                        list_of_workers.get(tkinter.ANCHOR).split(" - ")[0])).grid(row=11,
                                                                                   column=2)
+    # --------------------------------------------------------------------------------------------------------
+
+    tkinter.Label(window, text="Remove marked terminal", font=("Courier", 8), fg="blue").grid(row=14, column=0)
+    tkinter.Button(window, text="Remove terminal",
+                   command=lambda: remove_terminal(list_of_terminals.get(tkinter.ANCHOR).split(" - ")[0])).grid(
+        column=0, row=15)
+
+    tkinter.Label(window, text="Remove marked card", font=("Courier", 8), fg="blue").grid(row=14, column=1)
+    tkinter.Button(window, text="Remove card",
+                   command=lambda: remove_card(list_of_cards.get(tkinter.ANCHOR).split(" - ")[0])).grid(
+        column=1, row=15)
+
+    tkinter.Label(window, text="Remove marked worker", font=("Courier", 8), fg="blue").grid(row=14, column=2)
+    tkinter.Button(window, text="Remove worker",
+                   command=lambda: remove_worker(list_of_workers.get(tkinter.ANCHOR).split(" - ")[0])).grid(
+        column=2, row=15)
 
 
 if __name__ == "__main__":
