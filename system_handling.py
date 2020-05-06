@@ -11,18 +11,28 @@ list_of_workers = tkinter.Listbox(window, height=7, width=40, exportselection=0)
 
 
 def add_new_terminal(new_terminal_id):
-    if new_terminal_id != '':
-        is_new_terminal_id_correct = True if new_terminal_id[0] == 'T' else False
-        if is_new_terminal_id_correct:
-            terminal_exists = db.check_if_terminal_exists(db.database_filename, new_terminal_id)
-            if not terminal_exists:
-                db.add_terminal(db.database_filename, new_terminal_id)
-                fill_list_of_terminals()
-                print("Added terminal %s" % new_terminal_id)
-            else:
-                print("Terminal already exists!")
+    def is_number(s):
+        try:
+            float(s)
+            return True
+        except ValueError:
+            return False
+
+    if new_terminal_id != '' and len(new_terminal_id) > 1 and is_number(new_terminal_id[1:]):
+        is_new_terminal_id_correct = True
+    else:
+        is_new_terminal_id_correct = False
+
+    if is_new_terminal_id_correct:
+        terminal_exists = db.check_if_terminal_exists(db.database_filename, new_terminal_id)
+        if not terminal_exists:
+            db.add_terminal(db.database_filename, new_terminal_id)
+            fill_list_of_terminals()
+            print("Added terminal %s" % new_terminal_id)
         else:
-            print("Incorrect terminal id!")
+            print("Terminal already exists!")
+    else:
+        print("Incorrect terminal id!")
 
 
 def remove_terminal(terminal_id):
