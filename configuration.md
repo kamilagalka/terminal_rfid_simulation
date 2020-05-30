@@ -18,11 +18,18 @@ nazwę maszyny, na której działa Mosquitto, np.: *DESKTOP-9P31MIM*
 Po wykonaniu powyższych kroków powstaną pliki:
 
 **ca.crt, ca.key, ca.srl, server.crt, server.csr, server.key**
+
+
 6. W folderze instalacyjnym Mosquitto należy dodać folder certs i skopiować do niego pliki
 **ca.crt, server.crt i server.key.**
+
+
 7. Do folderu app, w którym znajdują się pliki programu skopiować plik **ca.crt**.
+
+
 8. Do folderu instalacyjnego Mosquitto dodać załączone do programu pliki **passwd.conf** oraz
 **aclfile.conf** (znajdują się one w folderze **conf_files**).
+
 
 9. W folderze instalacyjnym Mosquitto znajduje się plik **mosquitto.conf**, w którym należy
 dokonać następujących zmian:
@@ -62,3 +69,7 @@ acl_file c:\Program Files\mosquitto\aclfile.conf
 ```
 
 10. Zrestartować usługę Mosquitto Broker.
+
+
+
+
