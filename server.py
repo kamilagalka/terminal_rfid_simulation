@@ -2,9 +2,10 @@ import paho.mqtt.client as mqtt
 import tkinter
 import database_handling as db
 import datetime
+import config_file
 
-broker = "LAPTOP-KQDKQ66Q"
-port = 8883
+broker = config_file.broker
+port = config_file.port
 
 client = mqtt.Client()
 
@@ -38,7 +39,7 @@ def process_new_log(used_card_id, used_terminal_id):
 
     tkinter.Label(window, text=log_msg).grid(sticky="W")
 
-    client.publish("%s/log" % used_terminal_id, "Server registered new log successfully", )
+    client.publish("%s/confirm" % used_terminal_id, "Server registered new log successfully", )
 
 
 def get_date_from_datetime(date_time):

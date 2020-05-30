@@ -3,11 +3,12 @@ import tkinter
 import database_handling as db
 import keyboard
 import time
+import config_file
 
 CARD_BLOCKAGE_TIME = 5
 
-broker = "LAPTOP-KQDKQ66Q"
-port = 8883
+broker = config_file.broker
+port = config_file.port
 
 terminal_id = "T1"
 client = mqtt.Client()
@@ -74,7 +75,6 @@ def manage_new_log():
 
         if is_card_available:
             client.publish("%s/log" % terminal_id, used_card_id + "." + terminal_id, )
-            # print("%s/log" % terminal_id, used_card_id + "." + terminal_id, )
             cards_last_use_time.append((used_card_id, time.time()))
 
 
@@ -89,7 +89,7 @@ def connect_to_broker():
     client.connect(broker, port)
     client.on_message = process_message
     client.loop_start()
-    client.subscribe("%s/log" % terminal_id)
+    client.subscribe("%s/confirm" % terminal_id)
     client.publish("%s/status" % terminal_id, "online.%s" % terminal_id)
 
 
@@ -98,7 +98,7 @@ def disconnect_from_broker():
     client.disconnect()
 
 
-def update_cards_used_in_last_ten_secs():
+def update_cards_used_in_last_five_secs():
     for card in cards_last_use_time:
         card_use_time = card[1]
         time_passed = time.time() - card_use_time
@@ -110,7 +110,7 @@ def update_cards_used_in_last_ten_secs():
 def run():
     while True:
         window.update()
-        update_cards_used_in_last_ten_secs()
+        update_cards_used_in_last_five_secs()
 
         if window.focus_get():
             if keyboard.is_pressed('space'):
@@ -122,9 +122,12 @@ def run():
     time.sleep(0.5)
 
 
-if __name__ == "__main__":
-    # create_clients()
+def run_terminal():
     connect_to_broker()
     create_main_window()
     run()
     disconnect_from_broker()
+
+
+if __name__ == "__main__":
+    run_terminal()

@@ -1,7 +1,6 @@
 import tkinter
 import database_handling as db
 import reports_handling
-import server
 
 window = tkinter.Tk()
 
@@ -102,7 +101,6 @@ def connect_terminal(terminal_id):
     if terminal_id != '':
         db.connect_terminal_to_system(db.database_filename, terminal_id)
         fill_list_of_terminals()
-        server.subscribe_terminal(terminal_id)
         print("%s is connected" % terminal_id)
 
 
@@ -110,7 +108,6 @@ def disconnect_terminal(terminal_id):
     if terminal_id != '':
         db.disconnect_terminal_from_system(db.database_filename, terminal_id)
         fill_list_of_terminals()
-        server.unsubscribe_terminal(terminal_id)
         print("%s is disconnected" % terminal_id)
 
 

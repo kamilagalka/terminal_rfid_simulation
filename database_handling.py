@@ -3,12 +3,14 @@ import sqlite3
 import os
 
 database_filename = "system_database.db"
+
 STOLEN_CARD_OWNER_ID = -1
 
 
 def create_database(db_name):
     if os.path.exists(db_name):
         os.remove(db_name)
+        print("Existing database %s removed" % db_name)
 
     connection = sqlite3.connect(db_name)
     connection.close()
