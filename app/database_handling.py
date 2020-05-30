@@ -304,7 +304,7 @@ def create_test_database(db_name):
     add_card(db_name, "[42, 241, 54, 122, 532]")
 
     add_terminal(db_name, "T1")
-    add_terminal(db_name, "T2")
+    #add_terminal(db_name, "T2")
 
     connect_terminal_to_system(db_name, "T1")
     connect_terminal_to_system(db_name, "T2")
