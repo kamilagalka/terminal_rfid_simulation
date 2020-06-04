@@ -61,8 +61,10 @@ Na tym etapie można już obserwować
 komunikację klientów z serwerem za
 pośrednictwem otworzonego wcześniej okienka
 ***Server***.
+
 7. Zamknąć okna klientów poprzez wciśnięcie
 przycisku ***esc*** na klawiaturze
+
 8. Zamknąć okno ***Server***.
 
 ## Aneks
